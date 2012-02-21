@@ -35,6 +35,8 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define EVENT_VOLUMEUP_KEY_UP      8
 #define EVENT_CAMERA_KEY_DOWN      9
 #define EVENT_CAMERA_KEY_UP        10
+#define EVENT_MEDIA_KEY_DOWN      11
+#define EVENT_MEDIA_KEY_UP        12
 
 extern int ev_init();
 extern int ev_get(int);

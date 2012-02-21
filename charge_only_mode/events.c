@@ -50,6 +50,7 @@ static enum { EV_TYPE_UNKNOWN, EV_TYPE_KEYBOARD, EV_TYPE_UEVENT } ev_type[MAX_DE
 #define EV_VOLUMEDOWN_KEY_CODE   KEY_VOLUMEDOWN
 #define EV_VOLUMEUP_KEY_CODE     KEY_VOLUMEUP
 #define EV_CAMERA_KEY_CODE       KEY_CAMERA
+#define EV_MEDIA_KEY_CODE        112
 
 #define EV_KEY_VALUE_DOWN 0x01
 #define EV_KEY_VALUE_UP 0x00
@@ -166,6 +167,13 @@ int ev_get(int timeout_ms)
                     return EVENT_CAMERA_KEY_DOWN;
                 if ((ev.type == EV_KEY) && (ev.code == EV_CAMERA_KEY_CODE) && (ev.value == EV_KEY_VALUE_UP))
                     return EVENT_CAMERA_KEY_UP;
+
+                /* MEDIA key */
+                if ((ev.type == EV_KEY) && (ev.code == EV_MEDIA_KEY_CODE) && (ev.value == EV_KEY_VALUE_DOWN))
+                    return EVENT_MEDIA_KEY_DOWN;
+                if ((ev.type == EV_KEY) && (ev.code == EV_MEDIA_KEY_CODE) && (ev.value == EV_KEY_VALUE_UP))
+                    return EVENT_MEDIA_KEY_UP;
+
 
                 return -1;
             }

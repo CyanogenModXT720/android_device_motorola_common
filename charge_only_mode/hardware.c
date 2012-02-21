@@ -147,11 +147,17 @@ void get_device_state(struct device_state *s)
     s->voltage_level = voltage_level();
 }
 
+#ifndef NO_LIGHTS_MODULE
+
 static struct light_device_t *battery_light = NULL;
 static struct light_device_t *screen_light = NULL;
 
 static void set_color(struct light_device_t *light, int color)
+
+
 {
+
+
     if (light != NULL) {
         struct light_state_t state;
 
@@ -162,7 +168,77 @@ static void set_color(struct light_device_t *light, int color)
 
         light->set_light(light, &state);
     }
+
 }
+
+#endif 
+
+
+#ifdef NO_LIGHTS_MODULE
+
+
+const char *battery_blue = "/sys/class/leds/blue/brightness"; // camcorder light on xt720 , can blink
+const char *battery_green = "/sys/class/leds/green/brightness"; // camera (middle) light on xt720, can blink
+const char *battery_red = "/sys/class/leds/red/brightness"; // play (media) light on xt720 can't blink
+
+const char *screen_backlight = "/sys/class/leds/lcd-backlight/brightness";
+int battery_light = 0;
+#define battery_light_sys 10 
+int screen_light = 0;
+#define screen_light_sys 11
+
+static int
+write_int(char const* path, int value)
+{
+    int fd;
+    static int already_warned = 0;
+
+    fd = open(path, O_RDWR);
+    if (fd >= 0) {
+        char buffer[20];
+        int bytes = sprintf(buffer, "%d\n", value);
+        int amt = write(fd, buffer, bytes);
+        close(fd);
+        return amt == -1 ? -errno : 0;
+    } else {
+        if (already_warned == 0) {
+            LOGE("write_int failed to open %s\n", path);
+            already_warned = 1;
+        }
+        return -errno;
+    }
+}
+
+
+
+static void set_color(int light_sys_class, int color)
+
+
+{
+
+int err = 0;
+int red, green, blue;
+
+    switch (light_sys_class) {
+    case battery_light_sys:
+	red =  (color >> 16) & 0xFF;
+	green = (color >> 8) & 0xFF;
+	blue = color & 0xFF;
+	//will change the battery color
+	err = write_int(battery_red, red);
+	err = write_int(battery_green, green);
+	err = write_int(battery_blue, blue);
+
+	break;
+    case screen_light_sys:
+	//will change the screen brightness	
+	err = write_int(screen_backlight, color);
+	break;
+    }
+
+
+}
+#endif
 
 void set_battery_led(struct device_state *s)
 {
@@ -178,7 +254,12 @@ void set_battery_led(struct device_state *s)
 void set_brightness(float percent)
 {
     int brightness = (int) 255 * percent;
+#ifndef NO_LIGHTS_MODULE
     int color = 0xff000000 | (brightness << 16) | (brightness << 8) | brightness;
+#endif
+#ifdef NO_LIGHTS_MODULE
+    int color = brightness;
+#endif
 
     set_color(screen_light, color);
 }
@@ -186,7 +267,7 @@ void set_brightness(float percent)
 void led_init(void)
 {
     hw_module_t *module;
-
+#ifndef NO_LIGHTS_MODULE
     if (hw_get_module(LIGHTS_HARDWARE_MODULE_ID, (const hw_module_t **) &module) == 0) {
         if (module->methods->open(module, LIGHT_ID_BACKLIGHT, (hw_device_t **) &screen_light) != 0) {
             screen_light = NULL;
@@ -195,6 +276,13 @@ void led_init(void)
             battery_light = NULL;
         }
     }
+#endif
+//ok if we don't have light module, we should fail here
+#ifdef NO_LIGHTS_MODULE
+screen_light = screen_light_sys;
+battery_light = battery_light_sys;
+#endif
+
 }
 
 void led_uninit(void)

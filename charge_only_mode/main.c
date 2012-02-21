@@ -194,6 +194,9 @@ int main()
         case EVENT_CAMERA_KEY_DOWN:
             update_screen_on_wakeup_key2();
             break;
+        case EVENT_MEDIA_KEY_DOWN:
+            update_screen_on_wakeup_key2();
+            break;
         /* Battery events */
         case EVENT_BATTERY:
             power_event(1);
